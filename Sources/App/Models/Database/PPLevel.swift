@@ -2,23 +2,22 @@ import FluentSQLite
 import Vapor
 
 /// A single entry of a Todo list.
-final class PPLevel: SQLiteStringModel {
+final class PPLevel: SQLiteUUIDModel {
     /// The unique identifier for this `Todo`.
-    var id: String?
+    var id: UUID?
     
     let structureID: String
-    let name: String
-    let systemName: String
-    let capacity: Int
-    let currentCount: Int
+    var name: String
+    var systemName: String
+    var capacity: Int
+    var currentCount: Int
     
-
-
-    /// Creates a new `Todo`.
-//    init(id: Int? = nil, title: String) {
-//        self.id = id
-//        self.title = title
-//    }
+    func update(with level: WebFarmState.Structure.Level) {
+        name = level.friendlyName
+        systemName = level.systemName
+        capacity = level.capacity
+        currentCount = level.currentCount
+    }
 }
 
 /// Allows `Todo` to be used as a dynamic migration.

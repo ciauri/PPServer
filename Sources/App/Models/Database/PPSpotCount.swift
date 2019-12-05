@@ -5,7 +5,7 @@ import Vapor
 final class PPSpotCount: SQLiteUUIDModel {
     var id: UUID?
     
-    let levelID: String
+    let levelID: UUID
     let availableSpots: Int
     let timestamp: Date
     
