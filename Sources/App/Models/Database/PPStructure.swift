@@ -5,23 +5,25 @@ import Vapor
 final class PPStructure: SQLiteStringModel {
     /// The unique identifier for this `Todo`.
     var id: String?
-    var name: String
-    var capacity: Int
-    var currentCount: Int
-    var lastUpdated: Date
-    var hiResImageURL: URL?
-    var lowResImageURL: URL?
-    var latitude: Double
-    var longitude: Double
+    let name: String
+    let capacity: Int
+    let currentCount: Int
+    let lastUpdated: Date
+    let hiResImageURL: URL?
+    let lowResImageURL: URL?
+    let latitude: Double
+    let longitude: Double
 
-    func update(with state: WebFarmState.Structure) {
-        name = state.name
-        capacity = state.capacity
-        currentCount = state.currentCount
-        hiResImageURL = state.hdpiDetailImage
-        lowResImageURL = state.ldpiDetailImage
-        latitude = state.latitude
-        longitude = state.longitude
+    init(with structure: WebFarmState.Structure) {
+        id = structure.name
+        name = structure.name
+        capacity = structure.capacity
+        currentCount = structure.currentCount
+        lastUpdated = Date()
+        hiResImageURL = structure.hdpiDetailImage
+        lowResImageURL = structure.ldpiDetailImage
+        latitude = structure.latitude
+        longitude = structure.longitude
     }
 }
 

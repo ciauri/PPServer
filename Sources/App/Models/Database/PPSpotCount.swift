@@ -5,17 +5,15 @@ import Vapor
 final class PPSpotCount: SQLiteUUIDModel {
     var id: UUID?
     
-    let levelID: UUID
+    let levelID: String
     let availableSpots: Int
     let timestamp: Date
     
-
-
-    /// Creates a new `Todo`.
-//    init(id: Int? = nil, title: String) {
-//        self.id = id
-//        self.title = title
-//    }
+    init(level: PPLevel) {
+        levelID = level.id ?? ""
+        availableSpots = level.currentCount
+        timestamp = Date()
+    }
 }
 
 /// Allows `Todo` to be used as a dynamic migration.

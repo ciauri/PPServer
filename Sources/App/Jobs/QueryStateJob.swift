@@ -21,41 +21,42 @@ class QueryStateJob: Worker {
         dbConnection = try! app.newConnection(to: PPStructure.defaultDatabase!).wait()
     }
     
-    func fetchState() {
+    func sync() {
+        app.eventLoop.scheduleRepeatedTask(initialDelay: TimeAmount.seconds(0), delay: TimeAmount.minutes(5)) { task -> EventLoopFuture<Void> in
+            self.fetchState()
+                .map { (state) -> (state: [WebFarmState.Structure], structures: [PPStructure]) in
+                    return (state.structures, state.structures.map({ PPStructure(with: $0) }))
+            }.map { (context) -> (structures: [PPStructure], levels: [PPLevel]) in
+                let levels = context.state
+                    .map { (structure) -> [PPLevel] in
+                        return structure.levels.map({ PPLevel(with: $0, structureID: structure.name) })
+                }.reduce([], +)
+                return (context.structures, levels)
+            }.flatMap { (context) -> (EventLoopFuture<Void>) in
+                return EventLoopFuture.andAll(context.structures.map { $0.upsert(on: self.dbConnection) }, eventLoop: self.next())
+                    .do { (_) in
+                        context.levels.map({ $0.upsert(on: self.dbConnection).catch { (error) in
+                            self.logger?.error("whooops")
+                            } })
+                }.catch { (error) in
+                    self.logger?.error("whooops")
+                }
+            }
+        }
+    }
+    
+    private func fetchState() -> EventLoopFuture<WebFarmState> {
         let url = URL(string: "https://webfarm.chapman.edu/parkingservice/parkingservice/counts")!
-        HTTPClient.connect(hostname: url.host!, on: self).then { (client) -> EventLoopFuture<HTTPResponse> in
+        return HTTPClient.connect(hostname: url.host!, on: self).then { (client) -> EventLoopFuture<HTTPResponse> in
             let request = HTTPRequest(method: .GET, url: url)
             return client.send(request)
-        }.flatMap { [decoder, app] (response) -> EventLoopFuture<Void> in
+        }.map(to: WebFarmState.self) { [decoder] (response) in
             if let data = response.body.data {
-                let state = try decoder.decode(WebFarmState.self, from: data)
-                self.logger?.info("yay state")
-                return try self.process(structures: state.structures)
-            }
-            return self.future()
-        }
-    }
-    
-    func process(structures: [WebFarmState.Structure]) throws -> EventLoopFuture<Void> {
-        let futures: [EventLoopFuture<Void>] = structures.map { (structure) -> EventLoopFuture<Void> in
-            return PPStructure.find(structure.name, on: self.dbConnection).flatMap { (dbStructure) -> EventLoopFuture<Void> in
-                if let dbStructure = dbStructure {
-                    return try self.merge(state: structure, with: dbStructure)
-                }
+                return try decoder.decode(WebFarmState.self, from: data)
+            } else {
+                throw VaporError(identifier: "Decoding", reason: "WebFarm response is nil")
             }
         }
-    }
-    
-    func merge(state: WebFarmState.Structure, with structure: PPStructure) throws -> EventLoopFuture<Void> {
-        structure.update(with: state)
-        return try structure.levels.query(on: dbConnection).all().flatMap { (dbLevels) -> EventLoopFuture<Void> in
-            dbLevels.forEach { (level) in
-                if let matchingLevel = state.levels.first(where: {$0.systemName == level.systemName}) {
-                    level.update(with: matchingLevel)
-                }
-            }
-        }
-
     }
     
     func shutdownGracefully(queue: DispatchQueue, _ callback: @escaping (Error?) -> Void) {
