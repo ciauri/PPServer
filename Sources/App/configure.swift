@@ -28,5 +28,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Configure migrations
     var migrations = MigrationConfig()
     migrations.add(model: Todo.self, database: .sqlite)
+    migrations.add(model: PPStructure.self, database: .sqlite)
+    migrations.add(model: PPLevel.self, database: .sqlite)
+    migrations.add(model: PPSpotCount.self, database: .sqlite)
     services.register(migrations)
 }
