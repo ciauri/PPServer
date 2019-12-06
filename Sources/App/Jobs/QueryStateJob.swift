@@ -7,29 +7,58 @@
 
 import Foundation
 import Vapor
+import SQLite
 
 class QueryStateJob: Worker {
     let app: Application
     let logger: Logger?
     let decoder = JSONDecoder()
+    let dbConnection: SQLiteDatabase.Connection
     
     init(application: Application) {
         app = application
         logger = try? application.make(Logger.self)
+        dbConnection = try! app.newConnection(to: PPStructure.defaultDatabase!).wait()
     }
     
-    func fetchState() {
+    func sync() {
+        app.eventLoop.scheduleRepeatedTask(initialDelay: TimeAmount.seconds(0), delay: TimeAmount.seconds(20)) { task -> EventLoopFuture<Void> in
+            self.fetchState()
+                .map { (state) -> (state: [WebFarmState.Structure], structures: [PPStructure]) in
+                    return (state.structures, state.structures.map({ PPStructure(with: $0) }))
+            }.map { (context) -> (structures: [PPStructure], levels: [PPLevel]) in
+                let levels = context.state
+                    .map { (structure) -> [PPLevel] in
+                        return structure.levels.map({ PPLevel(with: $0, structureID: structure.name) })
+                }.reduce([], +)
+                return (context.structures, levels)
+            }.flatMap { (context) -> (EventLoopFuture<Void>) in
+                return EventLoopFuture.andAll(context.structures.map { $0.upsert(on: self.dbConnection) }, eventLoop: self.next())
+                    .do { (_) in
+                        context.levels.map({ $0.upsert(on: self.dbConnection).catch { (error) in
+                            self.logger?.error("whooops")
+                            } })
+                }.catch { (error) in
+                    self.logger?.error("whooops")
+                }
+            }
+        }
+    }
+    
+    private func fetchState() -> EventLoopFuture<WebFarmState> {
         let url = URL(string: "https://webfarm.chapman.edu/parkingservice/parkingservice/counts")!
-        HTTPClient.connect(hostname: url.host!, on: self).then { (client) -> EventLoopFuture<HTTPResponse> in
+        var httpClient: HTTPClient?
+        return HTTPClient.connect(hostname: url.host!, on: self).then { (client) -> EventLoopFuture<HTTPResponse> in
+            httpClient = client
             let request = HTTPRequest(method: .GET, url: url)
             return client.send(request)
-        }.flatMap { [decoder] (response) -> EventLoopFuture<Void> in
+        }.map(to: WebFarmState.self) { [decoder] (response) in
+            httpClient?.close()
             if let data = response.body.data {
-                let state = try? decoder.decode(WebFarmState.self, from: data)
-                
-                self.logger?.info("yay state")
+                return try decoder.decode(WebFarmState.self, from: data)
+            } else {
+                throw VaporError(identifier: "Decoding", reason: "WebFarm response is nil")
             }
-            return self.future()
         }
     }
     

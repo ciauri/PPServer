@@ -9,13 +9,11 @@ final class PPSpotCount: SQLiteUUIDModel {
     let availableSpots: Int
     let timestamp: Date
     
-
-
-    /// Creates a new `Todo`.
-//    init(id: Int? = nil, title: String) {
-//        self.id = id
-//        self.title = title
-//    }
+    init(level: PPLevel, date: Date) {
+        levelID = level.id ?? ""
+        availableSpots = level.currentCount
+        timestamp = date
+    }
 }
 
 /// Allows `Todo` to be used as a dynamic migration.

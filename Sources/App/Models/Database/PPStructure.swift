@@ -5,7 +5,6 @@ import Vapor
 final class PPStructure: SQLiteStringModel {
     /// The unique identifier for this `Todo`.
     var id: String?
-
     let name: String
     let capacity: Int
     let currentCount: Int
@@ -15,11 +14,17 @@ final class PPStructure: SQLiteStringModel {
     let latitude: Double
     let longitude: Double
 
-    /// Creates a new `Todo`.
-//    init(id: Int? = nil, title: String) {
-//        self.id = id
-//        self.title = title
-//    }
+    init(with structure: WebFarmState.Structure) {
+        id = structure.name
+        name = structure.name
+        capacity = structure.capacity
+        currentCount = structure.currentCount
+        lastUpdated = structure.date
+        hiResImageURL = structure.hdpiDetailImage
+        lowResImageURL = structure.ldpiDetailImage
+        latitude = structure.latitude
+        longitude = structure.longitude
+    }
 }
 
 /// Allows `Todo` to be used as a dynamic migration.

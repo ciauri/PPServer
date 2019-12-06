@@ -12,13 +12,25 @@ final class PPLevel: SQLiteStringModel {
     let capacity: Int
     let currentCount: Int
     
-
-
-    /// Creates a new `Todo`.
-//    init(id: Int? = nil, title: String) {
-//        self.id = id
-//        self.title = title
-//    }
+    init(with level: WebFarmState.Structure.Level, structureID: PPStructure.ID) {
+        id = structureID + level.systemName
+        self.structureID = structureID
+        name = level.friendlyName
+        systemName = level.systemName
+        capacity = level.capacity
+        currentCount = level.currentCount
+    }
+    
+    func didUpdate(on conn: SQLiteConnection) throws -> EventLoopFuture<PPLevel> {
+        structure.query(on: conn).first().do { (structure) in
+            if let structure = structure {
+                PPSpotCount(level: self, date: structure.lastUpdated).save(on: conn)
+            }
+        }.map(to: PPLevel.self) { (_)  in
+            return self
+        }
+        
+    }
 }
 
 /// Allows `Todo` to be used as a dynamic migration.
@@ -33,5 +45,19 @@ extension PPLevel: Parameter { }
 extension PPLevel {
     var structure: Parent<PPLevel, PPStructure> {
         return parent(\.structureID)
+    }
+}
+
+extension PPLevel {
+    var counts: Children<PPLevel, PPSpotCount> {
+        return children(\.levelID)
+    }
+}
+
+extension Model {
+    func upsert(on db: DatabaseConnectable) -> EventLoopFuture<Self> {
+        return create(on: db).catchFlatMap { (_) -> (EventLoopFuture<Self>) in
+            return self.update(on: db)
+        }
     }
 }
