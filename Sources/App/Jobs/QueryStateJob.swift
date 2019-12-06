@@ -47,10 +47,13 @@ class QueryStateJob: Worker {
     
     private func fetchState() -> EventLoopFuture<WebFarmState> {
         let url = URL(string: "https://webfarm.chapman.edu/parkingservice/parkingservice/counts")!
+        var httpClient: HTTPClient?
         return HTTPClient.connect(hostname: url.host!, on: self).then { (client) -> EventLoopFuture<HTTPResponse> in
+            httpClient = client
             let request = HTTPRequest(method: .GET, url: url)
             return client.send(request)
         }.map(to: WebFarmState.self) { [decoder] (response) in
+            httpClient?.close()
             if let data = response.body.data {
                 return try decoder.decode(WebFarmState.self, from: data)
             } else {
