@@ -6,10 +6,18 @@
 //
 
 import Foundation
+import Vapor
 
-struct SpotCount {
+struct SpotCount: Content {
     let id: UUID
     let levelID: String
     let availableSpots: Int
     let timestamp: Date
+    
+    init(with count: PPSpotCount) {
+        id = count.id ?? .init()
+        levelID = count.levelID
+        availableSpots = count.availableSpots
+        timestamp = count.timestamp
+    }
 }

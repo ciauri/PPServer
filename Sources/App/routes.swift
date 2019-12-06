@@ -12,5 +12,6 @@ public func routes(_ router: Router) throws {
         return "Hello, world!"
     }
     
+    try router.register(collection: LevelController())
     try router.register(collection: StructureController())
 }
