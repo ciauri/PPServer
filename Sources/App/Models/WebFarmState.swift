@@ -34,6 +34,21 @@ struct WebFarmState: Codable {
         let longitude: Double
         let timestamp: String
         let levels: [Level]
+        
+        var date: Date {
+            let numbers = CharacterSet.alphanumerics.subtracting(.letters)
+            guard let startRange = timestamp.rangeOfCharacter(from: numbers),
+                let endRange = timestamp.range(of: "-") else {
+                    return Date()
+            }
+            let millisecondString = timestamp.substring(with: Range<String.Index>(uncheckedBounds: (lower: startRange.lowerBound, upper: endRange.lowerBound)))
+            
+            guard let millis = TimeInterval(millisecondString) else {
+                return Date()
+            }
+            
+            return Date(timeIntervalSince1970: millis/1000)
+        }
 
         
         enum CodingKeys: String, CodingKey {

@@ -19,7 +19,7 @@ final class PPStructure: SQLiteStringModel {
         name = structure.name
         capacity = structure.capacity
         currentCount = structure.currentCount
-        lastUpdated = Date()
+        lastUpdated = structure.date
         hiResImageURL = structure.hdpiDetailImage
         lowResImageURL = structure.ldpiDetailImage
         latitude = structure.latitude

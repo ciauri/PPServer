@@ -22,7 +22,7 @@ class QueryStateJob: Worker {
     }
     
     func sync() {
-        app.eventLoop.scheduleRepeatedTask(initialDelay: TimeAmount.seconds(0), delay: TimeAmount.minutes(5)) { task -> EventLoopFuture<Void> in
+        app.eventLoop.scheduleRepeatedTask(initialDelay: TimeAmount.seconds(0), delay: TimeAmount.seconds(20)) { task -> EventLoopFuture<Void> in
             self.fetchState()
                 .map { (state) -> (state: [WebFarmState.Structure], structures: [PPStructure]) in
                     return (state.structures, state.structures.map({ PPStructure(with: $0) }))

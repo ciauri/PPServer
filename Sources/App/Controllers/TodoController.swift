@@ -3,8 +3,9 @@ import Vapor
 /// Controls basic CRUD operations on `Todo`s.
 final class TodoController {
     /// Returns a list of all `Todo`s.
-    func index(_ req: Request) throws -> Future<[PPStructure]> {
-        return PPStructure.query(on: req).all().flatMap { (levels) -> EventLoopFuture<[PPStructure]> in
+    func index(_ req: Request) throws -> Future<[PPSpotCount]> {
+        return PPSpotCount.query(on: req).all().flatMap { (levels) -> EventLoopFuture<[PPSpotCount]> in
+            
             return req.future(levels)
         }
 //        return PPStructure.query(on: req).all()

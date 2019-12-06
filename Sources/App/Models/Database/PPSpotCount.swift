@@ -9,10 +9,10 @@ final class PPSpotCount: SQLiteUUIDModel {
     let availableSpots: Int
     let timestamp: Date
     
-    init(level: PPLevel) {
+    init(level: PPLevel, date: Date) {
         levelID = level.id ?? ""
         availableSpots = level.currentCount
-        timestamp = Date()
+        timestamp = date
     }
 }
 

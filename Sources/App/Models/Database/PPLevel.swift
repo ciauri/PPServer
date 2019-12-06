@@ -22,9 +22,14 @@ final class PPLevel: SQLiteStringModel {
     }
     
     func didUpdate(on conn: SQLiteConnection) throws -> EventLoopFuture<PPLevel> {
-        PPSpotCount(level: self).save(on: conn).map(to: PPLevel.self) { (_)  in
+        structure.query(on: conn).first().do { (structure) in
+            if let structure = structure {
+                PPSpotCount(level: self, date: structure.lastUpdated).save(on: conn)
+            }
+        }.map(to: PPLevel.self) { (_)  in
             return self
         }
+        
     }
 }
 
