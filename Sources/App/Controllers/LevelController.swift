@@ -9,16 +9,17 @@ final class LevelController: RouteCollection {
     
     func byId(_ req: Request) throws -> Future<Level> {
         return getLevel(with: req).map(to: Level.self) { (level) in
-            return .init(with: level)
+            return Level(with: level, request: req)
         }
     }
     
     func counts(_ req: Request) throws -> Future<[SpotCount]> {
-        return getLevel(with: req)
-            .flatMap { (level) -> EventLoopFuture<[PPSpotCount]> in
-                return try level.counts.query(on: req).all()
-        }.map(to: [SpotCount].self) {
-            $0.map({ SpotCount(with: $0) })
+        return
+            getLevel(with: req)
+                .flatMap { (level) -> EventLoopFuture<[PPSpotCount]> in
+                    return try level.counts.query(on: req).all()
+            }.map(to: [SpotCount].self) {
+                $0.map({ SpotCount(with: $0) })
         }
     }
     

@@ -53,12 +53,13 @@ class QueryStateJob: Worker {
             let request = HTTPRequest(method: .GET, url: url)
             return client.send(request)
         }.map(to: WebFarmState.self) { [decoder] (response) in
-            httpClient?.close()
             if let data = response.body.data {
                 return try decoder.decode(WebFarmState.self, from: data)
             } else {
                 throw VaporError(identifier: "Decoding", reason: "WebFarm response is nil")
             }
+        }.always {
+            _ = httpClient?.close()
         }
     }
     
