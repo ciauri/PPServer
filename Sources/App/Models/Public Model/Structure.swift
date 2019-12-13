@@ -8,7 +8,9 @@
 import Vapor
 import Foundation
 
-struct Structure: Content {
+struct Structure: Content, Linkable {
+    let links: [String:URL]
+
     let id: String
     let name: String
     let capacity: Int
@@ -20,7 +22,8 @@ struct Structure: Content {
     let longitude: Double
     let levels: [Level]
     
-    init(with structure: PPStructure, levels: [PPLevel]) {
+    
+    init(with structure: PPStructure, levels: [PPLevel], request: Request) {
         id = structure.id ?? ""
         name = structure.name
         capacity = structure.capacity
@@ -30,6 +33,15 @@ struct Structure: Content {
         lowResImageURL = structure.lowResImageURL
         latitude = structure.latitude
         longitude = structure.longitude
-        self.levels = levels.map({ .init(with: $0) })
+        self.levels = levels.map({ .init(with: $0, request: request) })
+        links = [
+            "href" : request.baseURL
+                .appendingPathComponent("structure")
+                .appendingPathComponent(id),
+            "levels" : request.baseURL
+                .appendingPathComponent("structure")
+                .appendingPathComponent(id)
+                .appendingPathComponent("levels")
+        ]
     }
 }
