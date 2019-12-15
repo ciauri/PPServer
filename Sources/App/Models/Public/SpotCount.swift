@@ -7,13 +7,9 @@
 
 import Foundation
 import Vapor
+import PPKit
 
-struct SpotCount: Content {
-    let id: UUID
-    let levelID: String
-    let availableSpots: Int
-    let timestamp: Date
-    
+extension PPKSpotCount: Content {
     init(with count: PPSpotCount) {
         id = count.id ?? .init()
         levelID = count.levelID

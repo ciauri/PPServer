@@ -1,4 +1,5 @@
 import Vapor
+import PPKit
 
 final class LevelController: RouteCollection {
     
@@ -7,19 +8,19 @@ final class LevelController: RouteCollection {
         router.get("level", String.parameter, "counts", use: counts)
     }
     
-    func byId(_ req: Request) throws -> Future<Level> {
-        return getLevel(with: req).map(to: Level.self) { (level) in
-            return Level(with: level, request: req)
+    func byId(_ req: Request) throws -> Future<PPKLevel> {
+        return getLevel(with: req).map(to: PPKLevel.self) { (level) in
+            return PPKLevel(with: level, request: req)
         }
     }
     
-    func counts(_ req: Request) throws -> Future<[SpotCount]> {
+    func counts(_ req: Request) throws -> Future<[PPKSpotCount]> {
         return
             getLevel(with: req)
                 .flatMap { (level) -> EventLoopFuture<[PPSpotCount]> in
                     return try level.counts.query(on: req).all()
-            }.map(to: [SpotCount].self) {
-                $0.map({ SpotCount(with: $0) })
+            }.map(to: [PPKSpotCount].self) {
+                $0.map({ PPKSpotCount(with: $0) })
         }
     }
     

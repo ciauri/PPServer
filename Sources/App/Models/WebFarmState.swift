@@ -41,7 +41,7 @@ struct WebFarmState: Codable {
                 let endRange = timestamp.range(of: "-") else {
                     return Date()
             }
-            let millisecondString = timestamp.substring(with: Range<String.Index>(uncheckedBounds: (lower: startRange.lowerBound, upper: endRange.lowerBound)))
+            let millisecondString = timestamp[startRange.lowerBound ..< endRange.lowerBound]
             
             guard let millis = TimeInterval(millisecondString) else {
                 return Date()

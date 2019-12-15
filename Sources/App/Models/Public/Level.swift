@@ -7,16 +7,9 @@
 
 import Foundation
 import Vapor
+import PPKit
 
-struct Level: Content, Linkable {
-    let links: [String : URL]
-    
-    let id: String
-    let structureID: String
-    let name: String
-    let systemName: String
-    let capacity: Int
-    let currentCount: Int
+extension PPKLevel: Content {
     
     init(with level: PPLevel, request: Request) {
         id = level.id ?? ""

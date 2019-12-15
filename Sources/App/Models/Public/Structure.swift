@@ -7,22 +7,8 @@
 
 import Vapor
 import Foundation
-
-struct Structure: Content, Linkable {
-    let links: [String:URL]
-
-    let id: String
-    let name: String
-    let capacity: Int
-    let currentCount: Int
-    let lastUpdated: Date
-    let hiResImageURL: URL?
-    let lowResImageURL: URL?
-    let latitude: Double
-    let longitude: Double
-    let levels: [Level]
-    
-    
+import PPKit
+extension PPKStructure: Content {
     init(with structure: PPStructure, levels: [PPLevel], request: Request) {
         id = structure.id ?? ""
         name = structure.name
