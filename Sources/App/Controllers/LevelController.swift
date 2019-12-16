@@ -15,10 +15,15 @@ final class LevelController: RouteCollection {
     }
     
     func counts(_ req: Request) throws -> Future<[PPKSpotCount]> {
+        let startDate = (try? req.query.get(Date.self, at: "startDate")) ?? Date().addingTimeInterval(-60*60*24)
+        let endDate = (try? req.query.get(Date.self, at: "endDate")) ?? Date()
         return
             getLevel(with: req)
                 .flatMap { (level) -> EventLoopFuture<[PPSpotCount]> in
-                    return try level.counts.query(on: req).all()
+                    return try level.counts.query(on: req)
+                        .filter(\.timestamp, .greaterThanOrEqual, startDate)
+                        .filter(\.timestamp, .lessThanOrEqual, endDate)
+                        .all()
             }.map(to: [PPKSpotCount].self) {
                 $0.map({ PPKSpotCount(with: $0) })
         }
