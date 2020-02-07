@@ -27,7 +27,9 @@ extension PPKStructure: Content {
             "levels" : request.baseURL
                 .appendingPathComponent("structure")
                 .appendingPathComponent(id)
-                .appendingPathComponent("levels")
+                .appendingPathComponent("levels"),
+            "levelByID" : request.baseURL
+                .appendingPathComponent("level")
         ]
     }
 }
